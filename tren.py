@@ -15,76 +15,13 @@ def hata_yaz():
     print("\n***\nhata tipi")
     print(sys.exc_info()[0])
     print("\n***\nhata değeri")
-    print(sys.exc_info()[1])
+    print(sys.exc_info()[1]) 
     print("\n***\ntraceback")
     print(sys.exc_info()[2])
     print("***************************************\n\n")
 
-
-def main():
-
-    
-    #tarayıcı.open(URL)
-    tarayıcı.open(URL)
-    #print("sonuc tipi = " + str(type(sonuc)))
-    #print("dir response = ")
-    #print(dir(sonuc))
-    
-    print("Sayfa okundu")
-    #print(tarayıcı.get_current_page())
-
-    tarayıcı.select_form('form[id="biletAramaForm"]')
-    #print(dir(tarayıcı.select_form('form[id="biletAramaForm"]')))
-
-    #tarayıcı.get_current_form().print_summary()
-
-    tarayıcı["nereden"] = nereden
-    tarayıcı["nereye"]  = nereye
-    tarayıcı["trCalGid_input"]  = gidisTarihi
-    tarayıcı["tipradioIslemTipi"] = 1
-    #tarayıcı.get_current_form().print_summary()
-    
-    #tarayıcı.launch_browser()
-    
-    response = tarayıcı.submit_selected()
-    #print(type(response))
-    #print(response.text)
-    
-    #tarayıcı.get_current_page().find_all('tr')
-    page = tarayıcı.get_current_page()
-    #print(type(page))
-    tablo = page.find('tbody', id = "mainTabView:gidisSeferTablosu_data")
-    #print(type(tablo))
-
-    #seferleri bul
-    seferler = tablo.find_all("tr", role="row")
-    #tarayıcı.launch_browser()
-    
-##    for sefer in seferler: # saatleri bul
-##        saat = sefer.find('td', class_ = "whiteSortIcon").find('span').text
-##        #koltuklar = sefer.find("div", class_ = "ui-selectonemenu ui-widget ui-state-default ui-corner-all ui-helper-clearfix vagonTipiCombo").text
-##        #koltuklar = page.find_all("div", id="j_idt82")
-##        #print(koltuklar)
-##        #time.sleep(100)
-##        yeniBilgiler[saat] = ""
-####        if bilgiler.get(saat):
-####            if bilgiler[saat] == yeniBilgiler[saat]:
-####                continue
-####            else:
-####                if saat=="19:28":
-####                    print("\a")
-####                print("eski bilgiler")
-####                print(saat)
-####                print(bilgiler[saat])
-####                print("yeni bilgiler")
-####                print(yeniBilgiler[saat])
-####                print("*************************************************************************************************")
-####                print("Saat {}'de değişiklik var \n {}".format(saat, koltuklar))
-####                print("*************************************************************************************************")                
-####                bilgiler[saat] = yeniBilgiler[saat]
-####        else:
-####            bilgiler[saat] = yeniBilgiler[saat]
-
+def bilgileriAl():
+    ret_bilgiler = {}
     for seferNo, sefer in enumerate(seferler):
         #Sefer saatlerini bul
         saat = sefer.find('td', class_ = "whiteSortIcon").find('span').text
@@ -95,46 +32,33 @@ def main():
         #Koltukları sayılarını bul
         vagonlar = page.find("div", id="mainTabView:gidisSeferTablosu:{}:j_idt105:0:somVagonTipiGidis1_panel".format(seferNo)).find_all("li")
         
+        koltuklar = {}
         for vagon in vagonlar:
-            print(vagon.text)
-            koltuklar = {}
-            
             #Text'i parse ediyoruz
-            vagonAdi, koltukSayisi = vagon.text.rsplit(" ", 1)
-            koltukSayisi = int(koltukSayisi[1:-1])
+            vagonAdi, koltukSayisi = vagon.text.rsplit(" ", 1)            
+            koltukSayisi = int(koltukSayisi[1:-1]) #parantezleri kesme işlemi
             koltuklar[vagonAdi] = koltukSayisi
         
         #Bilgileri sözlükte tut
-        yeniBilgiler[saat] = [seferUygunluk, koltuklar]
-        print("p")
-        print(yeniBilgiler)
-        sys.exit() ##sözlüğü düzenle!!!
-##        if bilgiler.get(saat):
-##            if bilgiler[saat] == yeniBilgiler[saat]:
-##                continue
-##            else:
-##                if saat=="19:28":
-##                    print("\a")
-##                print("eski bilgiler")
-##                print(saat)
-##                print(bilgiler[saat])
-##                print("yeni bilgiler")
-##                print(yeniBilgiler[saat])
-##                print("*************************************************************************************************")
-##                print("Saat {}'de değişiklik var \n {}".format(saat, koltuklar))
-##                print("*************************************************************************************************")                
-##                bilgiler[saat] = yeniBilgiler[saat]
-##        else:
-##            bilgiler[saat] = yeniBilgiler[saat]
+        ret_bilgiler[saat] = [seferUygunluk, koltuklar]
+    return ret_bilgiler
+
+def main(eskiBilgiler):
+    yeniBilgiler = bilgileriAl()
+    if eskiBilgiler[seferSaati] != yeniBilgiler[seferSaati]: #eski bilgiler ile yeni bilgiler farklı ise
+        print("Değişiklik var!!! Kontrol et!!!")
+        time.sleep(10)
+        eskiBilgiler = yeniBilgiler
+    else:
+        print("değişiklikler sorunlu")#print("esit")
+        pass
 
 
-    
-    seferUygunluk = []
-    for seferNo in range(len(seferler)): # koltukları bul
-        seferUygunluk.append(page.find("div", id="mainTabView:gidisSeferTablosu:{}:seferBilgileriDataList:0:j_idt82".format(seferNo)).text)
-        print(seferUygunluk)
-        
-    #cık()
+##        print("*************************************************************************************************")
+##        print("Saat {}'de değişiklik var \n {}".format(saat, koltuklar))
+##        print("*************************************************************************************************")
+    #print(yeniBilgiler)
+    #cık() #main'i sonlandır
 if __name__ == "__main__":
     URL = "https://ebilet.tcddtasimacilik.gov.tr/"
 ##    print('Adana','Adapazarı','Adatepe (Pingen)','Adnanmenderes Havaalanı','Afyon A.Çetinkaya','Ahatlı','Ahmetler',
@@ -225,23 +149,70 @@ if __name__ == "__main__":
 ##          sep="~")
     nereden = "ERYAMAN YHT" #input("Nereden?(ERYAMAN YHT) : ") #"ERYAMAN YHT"
     nereye  = "Eskişehir" #input("Nereye?(Eskişehir) : ") #"Eskişehir"
-    gidisTarihi = "31.12.2019" #input("Ne Zaman?(gg.aa.yyyy) : ") #"13.12.2019"
-
+    gidisTarihi = "10.01.2020" #input("Ne Zaman?(gg.aa.yyyy) : ") #"13.12.2019"
+    seferSaati = "19:28" #inpur("Sefer Saati? (19:28) : ") #"19:28"
+    
     tarayıcı = tarayıcı_olustur()
     #print("tarayıcı'nın tipi")
     #print(type(tarayıcı))
     print("Tarayıcı oluşturuldu")
-    
-    bilgiler = {}
-    yeniBilgiler =  {}
+
     while True:
-        time.sleep(1)
         try:
-            main()
+            tarayıcı.open(URL)
+            #print("sonuc tipi = " + str(type(sonuc)))
+            #print("dir response = ")
+            #print(dir(sonuc))
+
+            print("Sayfa okundu")
+            #print(tarayıcı.get_current_page())
+
+            tarayıcı.select_form('form[id="biletAramaForm"]')
+            #print(dir(tarayıcı.select_form('form[id="biletAramaForm"]')))
+
+            #tarayıcı.get_current_form().print_summary()
+
+            tarayıcı["nereden"] = nereden
+            tarayıcı["nereye"]  = nereye
+            tarayıcı["trCalGid_input"]  = gidisTarihi
+            tarayıcı["tipradioIslemTipi"] = 1
+            #tarayıcı.get_current_form().print_summary()
+
+            #tarayıcı.launch_browser()
+
+            response = tarayıcı.submit_selected()
+            #print(type(response))
+            #print(response.text)
+
+            #tarayıcı.get_current_page().find_all('tr')
+            page = tarayıcı.get_current_page()
+            #print(type(page))
+            tablo = page.find('tbody', id = "mainTabView:gidisSeferTablosu_data")
+            #print(type(tablo))
+
+            #seferleri bul
+            seferler = tablo.find_all("tr", role="row")
+            #tarayıcı.launch_browser()
+
+            bilgiler = bilgileriAl()
+            break
+        except:
+            print("hata burada")
+            hata_yaz()
+            #sys.exit()
+
+    while True:
+        #Değişikliği kontrol etmek için sayfayı yenile
+        print("Sayfa yenileniyor")
+        time.sleep(5)
+        tarayıcı.refresh()
+        page = tarayıcı.get_current_page()
+        try:
+            main(bilgiler)
         except:
             hata_yaz()
             #print("Bilgiler okunurken hata oldu!")
             #print("Devam edilemiyor")
-            print("hata")
-            sys.exit()
-        time.sleep(2)
+            print("hata"+"10 saniye bekleniyor")
+            time.sleep(10)
+            #sys.exit()
